@@ -2,6 +2,7 @@ import os
 from cryptography.fernet import Fernet
 from pathlib import Path
 from dotenv import load_dotenv
+from core.constants import PROJECT_NAME
 
 root_dir = Path(__file__).resolve().parents[2]
 load_dotenv(root_dir / ".env")
@@ -16,9 +17,9 @@ def generate_fernet_key_file():
         with open(key_path, "wb") as key_file:
             key_file.write(key)
         
-        print("[AgentSmith Security] ✅ Fernet key generated.")
+        print(f"[{PROJECT_NAME} Security] ✅ Fernet key generated.")
     else:
-        print("[AgentSmith Security] ✅ Fernet key already exists.")
+        print(f"[{PROJECT_NAME} Security] ✅ Fernet key already exists.")
     
     return
 
@@ -27,7 +28,7 @@ def load_fernet_key_from_file() -> Fernet:
 
     if not key_path.exists():
         raise FileNotFoundError(
-            f"[AgentSmith Security] ❌ Fernet key not found at {key_path}. Please add the key path to the .env file."
+            f"[{PROJECT_NAME} Security] ❌ Fernet key not found at {key_path}. Please add the key path to the .env file."
         )
 
     with open(key_path, "rb") as key_file:

@@ -1,11 +1,17 @@
 from services.llms.providers.anthropic import AnthropicAPILLM
 from services.llms.providers.openai import OpenAIAPILLM
-from services.llms.local.llama_cpp import LlamaCppLLM
 from services.llms.local.lm_studio import LMStudioLLM
 from services.llms.providers.hugging_face import HuggingFaceAPILLM
 from typing import Callable, Dict
 from crud.llms import get_api_key_by_alias, get_remote_llm_by_alias, get_local_llm_by_alias
 from sqlalchemy.orm import Session
+
+try:
+    from services.llms.local.llama_cpp import LlamaCppLLM
+    LLAMA_CPP_AVAILABLE = True
+except ImportError:
+    LLAMA_CPP_AVAILABLE = False
+    LlamaCppLLM = None
 
 
 REMOTE_PROVIDERS: Dict[str, Callable[[str], object]] = {
@@ -15,9 +21,11 @@ REMOTE_PROVIDERS: Dict[str, Callable[[str], object]] = {
 }
 
 LOCAL_PROVIDERS: Dict[str, Callable[[str], object]] = {
-    "llama-cpp": lambda path: LlamaCppLLM(path),
     "lm-studio": lambda path: LMStudioLLM(),
 }
+
+if LLAMA_CPP_AVAILABLE:
+    LOCAL_PROVIDERS["llama-cpp"] = lambda path: LlamaCppLLM(path)
 
 
 def get_llm_client_by_alias(alias: str, db: Session, is_remote: bool):
@@ -53,6 +61,12 @@ def get_llm_client_by_provider(provider: str, **kwargs):
     elif provider == "huggingface":
         return HuggingFaceAPILLM()
     elif provider == "llama-cpp":
+        if not LLAMA_CPP_AVAILABLE:
+            raise ImportError(
+                "llama-cpp-python is not installed. "
+                "Install it with: uv pip install llama-cpp-python "
+                "or see README for build instructions."
+            )
         return LlamaCppLLM()
     elif provider == "lm-studio":
         return LMStudioLLM()

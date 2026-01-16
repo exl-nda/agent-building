@@ -211,7 +211,7 @@ class State(BaseModel):
         <div className="px-6 py-4 border-b border-gray-800 bg-gray-800/50 flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold text-white">State Manager</h2>
-            <p className="text-sm text-gray-400 mt-1">Define and manage your application state. A state is a <strong>shared data structure</strong> that represents the current snapshot of your application. States are <strong>passed along edges between nodes</strong>, carrying the output of one node to the next as input. Agent-smith translates the state into a <strong>Pydantic model</strong>.</p>
+            <p className="text-sm text-gray-400 mt-1">Define and manage your application state. A state is a <strong>shared data structure</strong> that represents the current snapshot of your application. States are <strong>passed along edges between nodes</strong>, carrying the output of one node to the next as input. Agent Builder translates the state into a <strong>Pydantic model</strong>.</p>
           </div>
           <button
             onClick={onClose}

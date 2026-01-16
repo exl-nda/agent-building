@@ -1,4 +1,4 @@
-agentsmith/
+agent-builder/
 ├── backend/
 │   ├── main.py
 │   ├── api/                # FastAPI routes (e.g. /flows, /llms)

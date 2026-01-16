@@ -1,13 +1,25 @@
 from services.llms.base import BaseLocalLLM
 from typing import Optional, AsyncGenerator
 import os
-from llama_cpp import Llama
+
+try:
+    from llama_cpp import Llama
+    LLAMA_CPP_AVAILABLE = True
+except ImportError:
+    LLAMA_CPP_AVAILABLE = False
+    Llama = None
 
 
 class LlamaCppLLM(BaseLocalLLM):
     """LLaMA-CPP LLM."""
     def __init__(self, path: Optional[str] = None):
         super().__init__("llama-cpp", path)
+        if not LLAMA_CPP_AVAILABLE:
+            raise ImportError(
+                "llama-cpp-python is not installed. "
+                "Install it with: uv pip install llama-cpp-python "
+                "or see README for build instructions."
+            )
         self.client = None
     
 

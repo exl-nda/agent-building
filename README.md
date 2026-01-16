@@ -1,4 +1,4 @@
-# AgentSmith
+# Agent Builder | McKesson
 
 [![Python](https://img.shields.io/badge/python-v3.13-yellow)]()
 [![FastAPI](https://img.shields.io/badge/fastapi-v0.116.1-purple)]()
@@ -7,15 +7,15 @@
 [![Llama-CPP](https://img.shields.io/badge/llama_cpp-v0.3.14-black)]()
 [![React](https://img.shields.io/badge/react-v19.1-blue)]()
 
-**AgentSmith** is a developer-first, visual framework for building, testing, and exporting **LangGraph-based AI agents**.
+**Agent Builder | McKesson** is a developer-first, visual framework for building, testing, and exporting **LangGraph-based AI agents**.
 
-Design intelligent workflows using a drag-and-drop interface, describe flows in natural language, define custom state/message schemas, and generate full **runnable Python code**. Whether you're using OpenAI, LLaMA, or your own tools, AgentSmith helps you go from **idea → graph → working agent** in seconds.
+Design intelligent workflows using a drag-and-drop interface, describe flows in natural language, define custom state/message schemas, and generate full **runnable Python code**. Whether you're using OpenAI, LLaMA, or your own tools, Agent Builder | McKesson helps you go from **idea → graph → working agent** in seconds.
 
 > _“Your agent. Your logic. Your code.”_
 
 ---
 
-## 🖥️ AgentSmith Features
+## 🖥️ Agent Builder | McKesson Features
 
 ![Demo](https://raw.githubusercontent.com/nMaroulis/agent-smith/refs/heads/main/assets/demo.gif)
 
@@ -48,9 +48,9 @@ Design intelligent workflows using a drag-and-drop interface, describe flows in 
 
 ---
 
-## 💡 Why AgentSmith?
+## 💡 Why Agent Builder | McKesson?
 
-AgentSmith is built for developers and advanced users who want:
+Agent Builder | McKesson is built for developers and advanced users who want:
 - ✅ Real state management via LangGraph
 - ✅ Full Python code and version control
 - ✅ Pluggable local/remote LLMs
@@ -117,8 +117,36 @@ $ npm install
 $ npm run dev
 ```
 
+### Optional: Installing llama-cpp-python
+
+`llama-cpp-python` is optional and commented out in `requirements.txt` by default. The application will run without it, but you won't be able to use the Llama.cpp local LLM provider.
+
+**To install llama-cpp-python:**
+
+On macOS, if you encounter build errors related to C++ standard library headers (`mutex`, `initializer_list`, `cstdint` not found), try:
+
+1. **Reinstall Xcode Command Line Tools:**
+   ```bash
+   sudo xcode-select --install
+   # Or if already installed:
+   sudo rm -rf /Library/Developer/CommandLineTools
+   sudo xcode-select --install
+   ```
+
+2. **Use Xcode instead of Command Line Tools:**
+   ```bash
+   sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+   ```
+
+3. **Install with pip instead of uv (sometimes works better):**
+   ```bash
+   pip install llama-cpp-python
+   ```
+
+4. **If build still fails**, you can use the application without llama-cpp-python - all other features will work normally.
+
 ## 🤝 Contributing
-I welcome contributions, ideas, and extensions. AgentSmith is modular by design — whether you’re adding a new LLM provider or a UI feature, I’d love your input.
+I welcome contributions, ideas, and extensions. Agent Builder | McKesson is modular by design — whether you're adding a new LLM provider or a UI feature, I'd love your input.
 
 
 ## 📄 License

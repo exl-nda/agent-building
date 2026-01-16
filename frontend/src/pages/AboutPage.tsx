@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FiGithub, FiCode, FiCpu, FiLayers, FiZap, FiTwitter, FiLinkedin } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { PROJECT_NAME } from '../constants';
 
 export default function AboutPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -61,7 +62,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                Welcome to Agent Smith
+                Welcome to {PROJECT_NAME}
               </h1>
               <p className="mt-6 text-xl text-gray-300 max-w-3xl mx-auto">
                 The ultimate platform for building, managing, and deploying AI workflows with ease. 
@@ -77,7 +78,7 @@ export default function AboutPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-2 gap-12">
           <div>
-            <h2 className="text-3xl font-bold mb-8">Why Choose Agent Smith?</h2>
+            <h2 className="text-3xl font-bold mb-8">Why Choose {PROJECT_NAME}?</h2>
             <p className="text-gray-400 mb-8 text-lg">
               Our platform is designed to make AI accessible to everyone, from developers to business users. 
               With powerful features and an intuitive interface, you can focus on building amazing AI applications 
@@ -233,7 +234,7 @@ export default function AboutPage() {
                 </h2>
                 <div className="max-w-3xl mx-auto px-6 text-center">
                   <p className="text-xl leading-relaxed text-gray-300 mb-8">
-                    Agent Smith is an open-source project with a simple goal: to provide developers with 
+                    {PROJECT_NAME} is an open-source project with a simple goal: to provide developers with 
                     a flexible, no-nonsense platform for building and managing AI workflows. We believe in 
                     practical solutions over buzzwords, and we're building tools we actually want to use.
                   </p>
@@ -346,7 +347,7 @@ export default function AboutPage() {
             {/* Company Info */}
             <div className="col-span-1 md:col-span-2">
               <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4">
-                Agent Smith
+                {PROJECT_NAME}
               </h3>
               <p className="text-gray-400 text-sm mb-4">
                 Empowering developers and businesses to build, deploy, and manage intelligent agents at scale.
@@ -390,7 +391,7 @@ export default function AboutPage() {
           <div className="mt-12 pt-8 border-t border-gray-800">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-500 text-sm">
-                © {new Date().getFullYear()} Agent Smith. All rights reserved.
+                © {new Date().getFullYear()} {PROJECT_NAME}. All rights reserved.
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0">
                 <a href="#" className="text-gray-500 hover:text-white text-xs transition-colors">Privacy Policy</a>

@@ -101,5 +101,5 @@ class BaseAPICallTool(BaseTool):
             """,
             "user_prompt": "{context}\n\nUser's question:\n{query}"}
 
-    def get_agent_fn(self) -> str:
-        return self.render_template("tools/api_call/agent_fn.jinja")
+    def get_agent_fn(self, agent_label: str, agent_description: str, system_prompt: str, user_prompt: str, tool_name: str, agent_input: str, agent_output: str) -> str:
+        return self.render_template("tools/api_call/agent_fn.jinja", agent_label=self.sanitize_to_func_name(agent_label), agent_description=agent_description, system_prompt=system_prompt, user_prompt=user_prompt, tool_name=self.sanitize_to_func_name(tool_name), agent_input=agent_input, agent_output=agent_output)
