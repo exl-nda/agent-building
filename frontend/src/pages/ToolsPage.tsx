@@ -9,6 +9,8 @@ import { SAPConfig } from '../components/tools/SAPConfig';
 import { DatabricksConfig } from '../components/tools/DatabricksConfig';
 import { WorkdayConfig } from '../components/tools/WorkdayConfig';
 import { SalesforceConfig } from '../components/tools/SalesforceConfig';
+import { ToolTypeSelector } from '../components/tools/ToolTypeSelector';
+import { ToolCreationWizard } from '../components/tools/ToolCreationWizard';
 
 // Lazy load the Monaco Editor
 const MonacoEditor = lazy(() => import('@monaco-editor/react'));
@@ -351,8 +353,7 @@ Please provide a comprehensive summary of the search results, focusing on the mo
     }
   };
 
-  const handlePreview = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePreview = async () => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`${serverUrl}/api/tools/preview_code`, {
@@ -383,8 +384,7 @@ Please provide a comprehensive summary of the search results, focusing on the mo
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     
     try {
@@ -418,8 +418,8 @@ Please provide a comprehensive summary of the search results, focusing on the mo
       const submissionData: ToolBase = {
         ...formData,
         config: newConfig,
-        // Use preview code if available
-        ...(isPreview && previewCode ? { code: previewCode } : {})
+        // Use preview code if available (for non-custom-code tools)
+        ...(previewCode && formData.type !== 'custom_code' ? { code: previewCode } : {})
       };
 
       const url = editingTool 
@@ -595,8 +595,34 @@ Please provide a comprehensive summary of the search results, focusing on the mo
           </div>
         )}
 
-        {/* Create/Edit Form */}
+        {/* Create/Edit Form - Wizard */}
         {(isCreating || editingTool) && (
+          <div className="mb-8 bg-gray-800 rounded-lg border border-gray-700" style={{ height: '80vh' }}>
+            <ToolCreationWizard
+              formData={formData}
+              setFormData={setFormData}
+              onInputChange={handleInputChange}
+              onPreview={handlePreview}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setIsCreating(false);
+                resetForm();
+              }}
+              previewCode={previewCode}
+              isSubmitting={isSubmitting}
+              isGeneratingPreview={isSubmitting}
+              editingTool={editingTool}
+              serverUrl={serverUrl}
+              generateDefaultRAGPrompt={generateDefaultRAGPrompt}
+              generateDefaultWebSearchPrompt={generateDefaultWebSearchPrompt}
+              isFullscreen={isFullscreen}
+              toggleFullscreen={toggleFullscreen}
+            />
+          </div>
+        )}
+
+        {/* Old form - keeping for reference, will be removed */}
+        {false && (isCreating || editingTool) && (
           <div className="mb-8 bg-gray-800 rounded-lg border border-gray-700 max-h-[80vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-700 sticky top-0 bg-gray-800 z-10">
               <h2 className="text-xl font-semibold text-white">
@@ -607,7 +633,7 @@ Please provide a comprehensive summary of the search results, focusing on the mo
               <form onSubmit={handleSubmit} className="space-y-6 p-8">
 
                 <div>
-                    <label htmlFor="type" className="block text-sm font-medium text-gray-300 mb-1">
+                    <label htmlFor="type" className="block text-sm font-medium text-gray-300 mb-3">
                       Tool Type
                     </label>
                     {isPreview ? (
@@ -618,20 +644,20 @@ Please provide a comprehensive summary of the search results, focusing on the mo
                         disabled
                       />
                     ) : (
-                      <select
-                        id="type"
-                        name="type"
-                        className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md ${editingTool ? 'bg-gray-700/50 text-gray-400 cursor-not-allowed' : 'bg-gray-700 text-white'}`}
+                      <ToolTypeSelector
                         value={formData.type}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          const syntheticEvent = {
+                            target: {
+                              name: 'type',
+                              value: e.target.value,
+                              type: 'select-one'
+                            }
+                          } as React.ChangeEvent<HTMLSelectElement>;
+                          handleInputChange(syntheticEvent);
+                        }}
                         disabled={!!editingTool}
-                      >
-                        {toolTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     )}
                   </div>
                   {/* Standard Tool Configuration */}
