@@ -103,3 +103,20 @@ class BaseAPICallTool(BaseTool):
 
     def get_agent_fn(self, agent_label: str, agent_description: str, system_prompt: str, user_prompt: str, tool_name: str, agent_input: str, agent_output: str) -> str:
         return self.render_template("tools/api_call/agent_fn.jinja", agent_label=self.sanitize_to_func_name(agent_label), agent_description=agent_description, system_prompt=system_prompt, user_prompt=user_prompt, tool_name=self.sanitize_to_func_name(tool_name), agent_input=agent_input, agent_output=agent_output)
+
+
+class BaseEnterpriseTool(BaseTool):
+    """Base class for enterprise integration tools (SAP, Databricks, Workday, Salesforce)."""
+    def __init__(self, tool: ToolCreate):
+        super().__init__(tool)
+    
+    def get_default_agent_prompts(self) -> dict:
+        return {"system_prompt": """You are an assistant that integrates with enterprise systems to retrieve and process information.
+            Only use the information from the enterprise system API response below to answer the user. Be helpful, clear, and accurate.
+            Enterprise System Response:
+            """,
+            "user_prompt": "{context}\n\nUser's question:\n{query}"}
+
+    def get_agent_fn(self, agent_label: str, agent_description: str, system_prompt: str, user_prompt: str, tool_name: str, agent_input: str, agent_output: str) -> str:
+        # Default implementation - subclasses can override with tool-specific templates
+        return self.render_template("tools/api_call/agent_fn.jinja", agent_label=self.sanitize_to_func_name(agent_label), agent_description=agent_description, system_prompt=system_prompt, user_prompt=user_prompt, tool_name=self.sanitize_to_func_name(tool_name), agent_input=agent_input, agent_output=agent_output)

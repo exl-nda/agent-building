@@ -3,6 +3,10 @@ from services.tools.rag.qdrant import QdrantRAGTool
 from services.tools.base import BaseTool
 from services.tools.web_search.duckduckgo import DuckDuckGoWebSearchTool
 from services.tools.api_call.api_call import APICallTool
+from services.tools.sap.sap import SAPTool
+from services.tools.databricks.databricks import DatabricksTool
+from services.tools.workday.workday import WorkdayTool
+from services.tools.salesforce.salesforce import SalesforceTool
 from schemas.tools import ToolCreate
 from models.tools import ToolType
 from crud.tools import get_tool_by_name as get_tool_by_name_db
@@ -24,6 +28,14 @@ def get_tool(tool: ToolCreate) -> BaseTool:
             raise ValueError(f"Unsupported web search library: {tool.library}")
     elif tool.type == ToolType.API_CALL:
         return APICallTool(tool)
+    elif tool.type == ToolType.SAP:
+        return SAPTool(tool)
+    elif tool.type == ToolType.DATABRICKS:
+        return DatabricksTool(tool)
+    elif tool.type == ToolType.WORKDAY:
+        return WorkdayTool(tool)
+    elif tool.type == ToolType.SALESFORCE:
+        return SalesforceTool(tool)
     raise ValueError(f"Unsupported tool type: {tool.type}")
 
 

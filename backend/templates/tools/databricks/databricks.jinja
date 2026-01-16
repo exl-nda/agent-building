@@ -1,0 +1,129 @@
+import requests
+import base64
+from typing import Any, Dict, Optional
+
+def {{ name }}(query: str, endpoint: str = "", method: str = "GET", body: Optional[Dict[str, Any]] = None, sql_query: Optional[str] = None) -> Any:
+    """
+    Calls Databricks API endpoint and returns the response.
+    Supports Personal Access Token, OAuth, Azure Client Secret, and AWS IAM authentication.
+    """
+    workspace_url = "{{ workspace_url }}".rstrip('/')
+    auth_type = "{{ auth_type }}"
+    api_version = "{{ api_version }}"
+    
+    # Construct full URL
+    if endpoint:
+        if endpoint.startswith('/'):
+            url = f"{workspace_url}/api/{api_version}{endpoint}"
+        else:
+            url = f"{workspace_url}/api/{api_version}/{endpoint}"
+    else:
+        url = f"{workspace_url}/api/{api_version}"
+    
+    # Prepare headers
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    
+    # Handle authentication
+    if auth_type == "token":
+        access_token = "{{ access_token }}"
+        if access_token:
+            headers["Authorization"] = f"Bearer {access_token}"
+    
+    elif auth_type == "oauth":
+        client_id = "{{ client_id }}"
+        client_secret = "{{ client_secret }}"
+        if client_id and client_secret:
+            # Get OAuth token
+            token_url = f"{workspace_url}/oidc/v1/token"
+            token_data = {
+                "grant_type": "client_credentials",
+                "client_id": client_id,
+                "client_secret": client_secret
+            }
+            token_response = requests.post(token_url, data=token_data)
+            if token_response.status_code == 200:
+                token = token_response.json().get("access_token", "")
+                if token:
+                    headers["Authorization"] = f"Bearer {token}"
+    
+    elif auth_type == "azure_client_secret":
+        azure_client_id = "{{ azure_client_id }}"
+        azure_client_secret = "{{ azure_client_secret }}"
+        azure_tenant_id = "{{ azure_tenant_id }}"
+        if azure_client_id and azure_client_secret and azure_tenant_id:
+            # Get Azure token
+            token_url = f"https://login.microsoftonline.com/{azure_tenant_id}/oauth2/v2.0/token"
+            token_data = {
+                "grant_type": "client_credentials",
+                "client_id": azure_client_id,
+                "client_secret": azure_client_secret,
+                "scope": f"{workspace_url}/.default"
+            }
+            token_response = requests.post(token_url, data=token_data)
+            if token_response.status_code == 200:
+                token = token_response.json().get("access_token", "")
+                if token:
+                    headers["Authorization"] = f"Bearer {token}"
+    
+    # Handle SQL queries if provided
+    if sql_query and "{{ sql_warehouse_id }}":
+        sql_endpoint = f"{workspace_url}/api/2.0/sql/statements"
+        sql_body = {
+            "warehouse_id": "{{ sql_warehouse_id }}",
+            "statement": sql_query,
+            "wait_timeout": "30s"
+        }
+        if "{{ default_catalog }}":
+            sql_body["catalog"] = "{{ default_catalog }}"
+        if "{{ default_schema }}":
+            sql_body["schema"] = "{{ default_schema }}"
+        
+        try:
+            response = requests.post(sql_endpoint, headers=headers, json=sql_body)
+            if response.status_code >= 200 and response.status_code < 300:
+                result = response.json()
+                # Poll for completion if needed
+                if result.get("status", {}).get("state") == "PENDING":
+                    statement_id = result.get("statement_id")
+                    if statement_id:
+                        status_url = f"{sql_endpoint}/{statement_id}"
+                        import time
+                        for _ in range(10):  # Max 10 attempts
+                            time.sleep(2)
+                            status_response = requests.get(status_url, headers=headers)
+                            if status_response.status_code == 200:
+                                status_result = status_response.json()
+                                if status_result.get("status", {}).get("state") != "PENDING":
+                                    return status_result
+                return result
+            else:
+                return {"error": f"SQL query failed with status {response.status_code}", "message": response.text}
+        except Exception as e:
+            return {"error": f"Exception executing SQL query: {str(e)}"}
+    
+    # Make the regular API request
+    try:
+        if method.upper() == "GET":
+            response = requests.get(url, headers=headers, params=body if body else {})
+        elif method.upper() == "POST":
+            response = requests.post(url, headers=headers, json=body)
+        elif method.upper() == "PUT":
+            response = requests.put(url, headers=headers, json=body)
+        elif method.upper() == "DELETE":
+            response = requests.delete(url, headers=headers)
+        else:
+            response = requests.request(method.upper(), url, headers=headers, json=body)
+        
+        if response.status_code >= 200 and response.status_code < 300:
+            try:
+                return response.json()
+            except:
+                return {"status": "success", "data": response.text, "status_code": response.status_code}
+        else:
+            return {"error": f"API call failed with status {response.status_code}", "message": response.text, "status_code": response.status_code}
+    
+    except Exception as e:
+        return {"error": f"Exception occurred: {str(e)}"}

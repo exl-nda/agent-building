@@ -1,0 +1,28 @@
+def {{ agent_label }}(state: State):
+    """
+    Agent Description: {{ agent_description }}
+    """
+    
+    query = {{ agent_input }}
+    result = {{ tool_name }}(query)
+    
+    if not result or (isinstance(result, dict) and result.get("error")):
+        return {
+            "messages": [{"role": "assistant", "content": f"I couldn't retrieve information from Salesforce right now. {'Error: ' + result.get('error', 'Unknown error') if isinstance(result, dict) else 'Please try again later.'}"}]
+        }
+    
+    context = str(result)
+    
+    messages = [
+        {
+            "role": "system",
+            "content": {{ system_prompt }}
+        },
+        {
+            "role": "user",
+            "content": {{ user_prompt }}
+        }
+    ]
+    
+    response = llm.invoke(messages)
+    return {{ agent_output }}

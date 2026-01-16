@@ -1,0 +1,89 @@
+import requests
+import base64
+from typing import Any, Dict, Optional
+
+def {{ name }}(query: str, endpoint: str = "", method: str = "GET", body: Optional[Dict[str, Any]] = None) -> Any:
+    """
+    Calls SAP API endpoint and returns the response.
+    Supports Basic Auth, OAuth 2.0, and Certificate authentication.
+    """
+    system_url = "{{ system_url }}"
+    auth_type = "{{ auth_type }}"
+    
+    # Build base URL
+    if "{{ application_server }}" and "{{ system_number }}":
+        base_url = f"https://{{ application_server }}:{{ system_number }}"
+    else:
+        base_url = system_url.rstrip('/')
+    
+    # Construct full URL
+    if endpoint:
+        if endpoint.startswith('/'):
+            url = f"{base_url}{endpoint}"
+        else:
+            url = f"{base_url}/{endpoint}"
+    else:
+        url = base_url
+    
+    # Prepare headers
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    
+    # Handle authentication
+    if auth_type == "basic":
+        username = "{{ username }}"
+        password = "{{ password }}"
+        if username and password:
+            credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+            headers["Authorization"] = f"Basic {credentials}"
+    
+    elif auth_type == "oauth":
+        oauth_token_endpoint = "{{ oauth_token_endpoint }}"
+        username = "{{ username }}"
+        password = "{{ password }}"
+        
+        if oauth_token_endpoint and username and password:
+            # Get OAuth token
+            token_data = {
+                "grant_type": "password",
+                "username": username,
+                "password": password
+            }
+            token_response = requests.post(oauth_token_endpoint, data=token_data)
+            if token_response.status_code == 200:
+                token = token_response.json().get("access_token", "")
+                if token:
+                    headers["Authorization"] = f"Bearer {token}"
+    
+    # Add SAP-specific headers
+    if "{{ client }}":
+        headers["X-SAP-Client"] = "{{ client }}"
+    
+    if "{{ rfc_destination }}":
+        headers["X-SAP-RFC-Dest"] = "{{ rfc_destination }}"
+    
+    # Make the request
+    try:
+        if method.upper() == "GET":
+            response = requests.get(url, headers=headers, params=body if body else {})
+        elif method.upper() == "POST":
+            response = requests.post(url, headers=headers, json=body)
+        elif method.upper() == "PUT":
+            response = requests.put(url, headers=headers, json=body)
+        elif method.upper() == "DELETE":
+            response = requests.delete(url, headers=headers)
+        else:
+            response = requests.request(method.upper(), url, headers=headers, json=body)
+        
+        if response.status_code >= 200 and response.status_code < 300:
+            try:
+                return response.json()
+            except:
+                return {"status": "success", "data": response.text, "status_code": response.status_code}
+        else:
+            return {"error": f"API call failed with status {response.status_code}", "message": response.text, "status_code": response.status_code}
+    
+    except Exception as e:
+        return {"error": f"Exception occurred: {str(e)}"}

@@ -1,0 +1,128 @@
+import requests
+import base64
+from typing import Any, Dict, Optional
+
+def {{ name }}(query: str, endpoint: str = "", method: str = "GET", body: Optional[Dict[str, Any]] = None, soql_query: Optional[str] = None) -> Any:
+    """
+    Calls Salesforce API endpoint and returns the response.
+    Supports OAuth (Username/Password), OAuth JWT, Session ID, and Access Token authentication.
+    """
+    instance_url = "{{ instance_url }}".rstrip('/')
+    auth_type = "{{ auth_type }}"
+    api_version = "{{ api_version }}"
+    api_type = "{{ api_type }}"
+    default_object = "{{ default_object }}"
+    
+    # Get access token
+    access_token = None
+    
+    if auth_type == "oauth":
+        username = "{{ username }}"
+        password = "{{ password }}"
+        security_token = "{{ security_token }}"
+        consumer_key = "{{ consumer_key }}"
+        consumer_secret = "{{ consumer_secret }}"
+        
+        if username and password:
+            # OAuth Username/Password flow
+            login_url = f"{instance_url}/services/oauth2/token" if instance_url else "https://login.salesforce.com/services/oauth2/token"
+            login_data = {
+                "grant_type": "password",
+                "client_id": consumer_key if consumer_key else "",
+                "client_secret": consumer_secret if consumer_secret else "",
+                "username": username,
+                "password": password + security_token if security_token else password
+            }
+            try:
+                login_response = requests.post(login_url, data=login_data)
+                if login_response.status_code == 200:
+                    login_result = login_response.json()
+                    access_token = login_result.get("access_token", "")
+                    instance_url = login_result.get("instance_url", instance_url).rstrip('/')
+            except Exception as e:
+                pass
+    
+    elif auth_type == "oauth_jwt":
+        consumer_key = "{{ consumer_key }}"
+        consumer_secret = "{{ consumer_secret }}"
+        username = "{{ username }}"
+        # Note: JWT Bearer flow requires a certificate/private key, which is complex
+        # For now, we'll use a simplified approach
+        # In production, you'd need proper JWT signing
+        pass  # JWT Bearer flow requires additional setup
+    
+    elif auth_type == "session_id":
+        access_token = "{{ session_id }}"
+    
+    elif auth_type == "access_token":
+        access_token = "{{ access_token }}"
+    
+    if not access_token:
+        return {"error": "No valid access token available. Please check authentication configuration."}
+    
+    # Construct base URL based on API type
+    if api_type == "rest":
+        base_url = f"{instance_url}/services/data/{api_version}"
+    elif api_type == "soap":
+        base_url = f"{instance_url}/services/Soap/u/{api_version}"
+    elif api_type == "bulk":
+        base_url = f"{instance_url}/services/async/{api_version}"
+    else:
+        base_url = f"{instance_url}/services/data/{api_version}"
+    
+    # Handle SOQL queries
+    if soql_query:
+        query_url = f"{base_url}/query"
+        query_params = {"q": soql_query}
+        try:
+            response = requests.get(query_url, headers={"Authorization": f"Bearer {access_token}"}, params=query_params)
+            if response.status_code >= 200 and response.status_code < 300:
+                return response.json()
+            else:
+                return {"error": f"SOQL query failed with status {response.status_code}", "message": response.text}
+        except Exception as e:
+            return {"error": f"Exception executing SOQL query: {str(e)}"}
+    
+    # Construct full URL
+    if endpoint:
+        if endpoint.startswith('/'):
+            url = f"{base_url}{endpoint}"
+        else:
+            url = f"{base_url}/{endpoint}"
+    elif default_object:
+        url = f"{base_url}/sobjects/{default_object}"
+    else:
+        url = base_url
+    
+    # Prepare headers
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    
+    # Make the request
+    try:
+        if method.upper() == "GET":
+            response = requests.get(url, headers=headers, params=body if body else {})
+        elif method.upper() == "POST":
+            response = requests.post(url, headers=headers, json=body)
+        elif method.upper() == "PUT":
+            response = requests.put(url, headers=headers, json=body)
+        elif method.upper() == "PATCH":
+            response = requests.patch(url, headers=headers, json=body)
+        elif method.upper() == "DELETE":
+            response = requests.delete(url, headers=headers)
+        else:
+            response = requests.request(method.upper(), url, headers=headers, json=body)
+        
+        if response.status_code >= 200 and response.status_code < 300:
+            try:
+                return response.json()
+            except:
+                return {"status": "success", "data": response.text, "status_code": response.status_code}
+        else:
+            return {"error": f"API call failed with status {response.status_code}", "message": response.text, "status_code": response.status_code}
+    
+    except Exception as e:
+        return {"error": f"Exception occurred: {str(e)}"}

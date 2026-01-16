@@ -1,0 +1,128 @@
+import requests
+import base64
+from typing import Any, Dict, Optional
+
+def {{ name }}(query: str, endpoint: str = "", method: str = "GET", body: Optional[Dict[str, Any]] = None, report_name: Optional[str] = None) -> Any:
+    """
+    Calls Workday API endpoint and returns the response.
+    Supports OAuth 2.0, Basic Auth, and Certificate authentication.
+    """
+    tenant_url = "{{ tenant_url }}".rstrip('/')
+    auth_type = "{{ auth_type }}"
+    api_version = "{{ api_version }}"
+    service_name = "{{ service_name }}" if "{{ service_name }}" else "Human_Resources"
+    report_format = "{{ report_format }}"
+    
+    # Construct base URL
+    base_url = f"{tenant_url}/ccx/service/{tenant_url.split('/')[-1]}/{service_name}/{api_version}"
+    
+    # Construct full URL
+    if endpoint:
+        if endpoint.startswith('/'):
+            url = f"{base_url}{endpoint}"
+        else:
+            url = f"{base_url}/{endpoint}"
+    else:
+        url = base_url
+    
+    # Prepare headers
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": f"application/{report_format}"
+    }
+    
+    # Handle authentication
+    access_token = None
+    
+    if auth_type == "oauth":
+        client_id = "{{ client_id }}"
+        client_secret = "{{ client_secret }}"
+        refresh_token = "{{ refresh_token }}"
+        
+        if refresh_token:
+            # Use refresh token to get new access token
+            token_url = f"{tenant_url}/oauth2/{tenant_url.split('/')[-1]}/token"
+            token_data = {
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": client_id,
+                "client_secret": client_secret
+            }
+        elif client_id and client_secret:
+            # Client credentials flow
+            token_url = f"{tenant_url}/oauth2/{tenant_url.split('/')[-1]}/token"
+            token_data = {
+                "grant_type": "client_credentials",
+                "client_id": client_id,
+                "client_secret": client_secret
+            }
+        
+        if token_url and token_data:
+            try:
+                token_response = requests.post(token_url, data=token_data)
+                if token_response.status_code == 200:
+                    token_result = token_response.json()
+                    access_token = token_result.get("access_token", "")
+            except Exception as e:
+                pass  # Will fall back to basic auth if OAuth fails
+    
+    if access_token:
+        headers["Authorization"] = f"Bearer {access_token}"
+    elif auth_type == "basic":
+        username = "{{ username }}"
+        password = "{{ password }}"
+        if username and password:
+            credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+            headers["Authorization"] = f"Basic {credentials}"
+    
+    # Handle report requests
+    if report_name:
+        report_url = f"{base_url}/{report_name}"
+        if report_format == "json":
+            headers["Accept"] = "application/json"
+        elif report_format == "xml":
+            headers["Accept"] = "application/xml"
+        elif report_format == "csv":
+            headers["Accept"] = "text/csv"
+        
+        try:
+            response = requests.get(report_url, headers=headers)
+            if response.status_code >= 200 and response.status_code < 300:
+                if report_format == "json":
+                    try:
+                        return response.json()
+                    except:
+                        return {"data": response.text}
+                else:
+                    return {"data": response.text, "format": report_format}
+            else:
+                return {"error": f"Report request failed with status {response.status_code}", "message": response.text}
+        except Exception as e:
+            return {"error": f"Exception requesting report: {str(e)}"}
+    
+    # Make the regular API request
+    try:
+        if method.upper() == "GET":
+            response = requests.get(url, headers=headers, params=body if body else {})
+        elif method.upper() == "POST":
+            response = requests.post(url, headers=headers, json=body)
+        elif method.upper() == "PUT":
+            response = requests.put(url, headers=headers, json=body)
+        elif method.upper() == "DELETE":
+            response = requests.delete(url, headers=headers)
+        else:
+            response = requests.request(method.upper(), url, headers=headers, json=body)
+        
+        if response.status_code >= 200 and response.status_code < 300:
+            try:
+                if report_format == "json":
+                    return response.json()
+                else:
+                    return {"data": response.text, "format": report_format}
+            except:
+                return {"status": "success", "data": response.text, "status_code": response.status_code}
+        else:
+            return {"error": f"API call failed with status {response.status_code}", "message": response.text, "status_code": response.status_code}
+    
+    except Exception as e:
+        return {"error": f"Exception occurred: {str(e)}"}

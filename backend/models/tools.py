@@ -9,6 +9,10 @@ class ToolType(enum.Enum):
     AGENT = "agent"
     API_CALL = "api_call"
     LLM_TOOL = "llm_tool"
+    SAP = "sap"
+    DATABRICKS = "databricks"
+    WORKDAY = "workday"
+    SALESFORCE = "salesforce"
     OTHER = "other"
 
 
