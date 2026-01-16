@@ -5,6 +5,10 @@ import { WebSearchConfig } from '../components/tools/WebSearchConfig';
 import { RAGConfig } from '../components/tools/RAGConfig';
 import { CodeEditorConfig } from '../components/tools/CodeEditorConfig';
 import { APICallConfig } from '../components/tools/APICallConfig';
+import { SAPConfig } from '../components/tools/SAPConfig';
+import { DatabricksConfig } from '../components/tools/DatabricksConfig';
+import { WorkdayConfig } from '../components/tools/WorkdayConfig';
+import { SalesforceConfig } from '../components/tools/SalesforceConfig';
 
 // Lazy load the Monaco Editor
 const MonacoEditor = lazy(() => import('@monaco-editor/react'));
@@ -23,7 +27,7 @@ interface IStandaloneCodeEditor {
   focus: () => void;
 }
 
-type ToolType = 'rag' | 'web_search' | 'custom_code' | 'agent' | 'api_call' | 'llm_tool' | 'mcp_server';
+type ToolType = 'rag' | 'web_search' | 'custom_code' | 'agent' | 'api_call' | 'llm_tool' | 'mcp_server' | 'sap' | 'databricks' | 'workday' | 'salesforce';
 
 interface LLMConfig {
   provider: string;
@@ -101,6 +105,12 @@ const ToolsPage = () => {
     { value: 'custom_code', label: 'Custom Code' },
     { value: 'rag', label: 'RAG' },
     { value: 'web_search', label: 'Web Search' },
+    // Enterprise Tools
+    { value: 'sap', label: 'SAP' },
+    { value: 'databricks', label: 'Databricks' },
+    { value: 'workday', label: 'Workday' },
+    { value: 'salesforce', label: 'Salesforce' },
+    // Other tools
     { value: 'agent', label: 'Agent' },
     { value: 'llm_tool', label: 'LLM Tool' },
     { value: 'mcp_server', label: 'MCP Server' },
@@ -692,6 +702,42 @@ Please provide a comprehensive summary of the search results, focusing on the mo
                   {/* API Call Configuration */}
                   {formData.type === 'api_call' && (
                     <APICallConfig 
+                      formData={formData}
+                      onInputChange={handleInputChange}
+                      setFormData={setFormData}
+                    />
+                  )}
+
+                  {/* SAP Configuration */}
+                  {formData.type === 'sap' && (
+                    <SAPConfig 
+                      formData={formData}
+                      onInputChange={handleInputChange}
+                      setFormData={setFormData}
+                    />
+                  )}
+
+                  {/* Databricks Configuration */}
+                  {formData.type === 'databricks' && (
+                    <DatabricksConfig 
+                      formData={formData}
+                      onInputChange={handleInputChange}
+                      setFormData={setFormData}
+                    />
+                  )}
+
+                  {/* Workday Configuration */}
+                  {formData.type === 'workday' && (
+                    <WorkdayConfig 
+                      formData={formData}
+                      onInputChange={handleInputChange}
+                      setFormData={setFormData}
+                    />
+                  )}
+
+                  {/* Salesforce Configuration */}
+                  {formData.type === 'salesforce' && (
+                    <SalesforceConfig 
                       formData={formData}
                       onInputChange={handleInputChange}
                       setFormData={setFormData}
